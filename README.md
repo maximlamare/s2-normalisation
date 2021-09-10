@@ -28,7 +28,11 @@ A suitable approach that seems to work for most surfaces is the "semi-empirical 
 
 ## s2brdf
 
-`s2brdf` is a python implementation of the BRDF normalisation process. Code for the volumetric scattering and geometric-optical model kernels can be found in [`kernels.py`](s2brdf/kernels.py).
+`s2brdf` is a python implementation of the BRDF normalisation process. 
+
+Code for the volumetric scattering and geometric-optical model kernels can be found in [`kernels.py`](s2brdf/kernels.py).
+
+Functions for the nadir-adjusted BRDF reflectance are in [`brdf.py`](s2brdf/brdf.py).
 
 ### Installation
 1. Create a virtual environment (optional)
@@ -41,7 +45,12 @@ mkvirtualenv s2brdf
 pip install -e .
 ```
 
-### Example
+### Examples
+
+#### Nadir-adjusted BRDF reflectance
+coming soon...
+
+#### Kernels
 To estimate geometric kernel values (`k_geo`), you can pass a vector of solar zenith angle (`sza`), view zenith angle (`vza`), solar azimuth angle (`saa`), and view azimuth angle (`vaa`) to the function `calc_kgeo`. The function expects angles iexpressed as radians, but there is a helper function to convert from deg2rad (`deg2rad`).
 
 ```python
