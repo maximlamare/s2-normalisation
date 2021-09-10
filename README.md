@@ -41,6 +41,26 @@ mkvirtualenv s2brdf
 pip install -e .
 ```
 
+### Example
+To estimate geometric kernel values (`k_geo`), you can pass a vector of solar zenith angle (`sza`), view zenith angle (`vza`), solar azimuth angle (`saa`), and view azimuth angle (`vaa`) to the function `calc_kgeo`. The function expects angles iexpressed as radians, but there is a helper function to convert from deg2rad (`deg2rad`).
+
+```python
+from s2brdf.kernels import deg2rad, calc_kgeo, calc_kvol
+
+SZA = deg2rad(45)
+SAA = deg2rad(180)
+VZA = deg2rad(10)
+VAA = deg2rad(0)
+
+k_geo = calc_kgeo(SZA, VZA, SAA, VAA)
+```
+
+The function `calc_kvol` will estimate volumetric kernel values:
+
+```python
+k_vol = calc_kvol(SZA, VZA, SAA, VAA)
+```
+
 ### Testing
 Each python source file has a corresponding test file in the [`tests`](tests) directory. The unit tests are set up using `pytest` (install with `pip install pytest`). To run all of the unit tests:
 ```bash
