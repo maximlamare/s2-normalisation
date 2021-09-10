@@ -17,13 +17,35 @@ A suitable approach that seems to work for most surfaces is the "semi-empirical 
 
 ## Repository organisation
 
-**code** contains all the javascript code, later to be implemented in an Evalscript.
+**javascript** contains all the javascript code, later to be implemented in an Evalscript.
 
-**tests** contains the functions tested against the graphs from the papers used to develop the algorithm.
+**notebooks** contains the functions tested against the graphs from the papers used to develop the algorithm.
 
 **papers** contains the relevant scientific articles.
 
+**s2brdf** contains a python package implementation of the algorithms.
 
+
+## s2brdf
+
+`s2brdf` is a python implementation of the BRDF normalisation process. Code for the volumetric scattering and geometric-optical model kernels can be found in [`kernels.py`](s2brdf/kernels.py).
+
+### Installation
+1. Create a virtual environment (optional)
+```bash
+mkvirtualenv s2brdf
+```
+
+2. Install using `pip`
+```bash
+pip install -e .
+```
+
+### Testing
+Each python source file has a corresponding test file in the [`tests`](tests) directory. The unit tests are set up using `pytest` (install with `pip install pytest`). To run all of the unit tests:
+```bash
+pytest
+```
 
 ## Status
 
