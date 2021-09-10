@@ -36,8 +36,35 @@ def test_calc_cos_xi():
 
 
 def test_calc_kgeo():
+    # principal plain
     SZA = deg2rad(45)
     SAA = deg2rad(180)
     VAA = deg2rad(0)
     assert calc_kgeo(SZA, deg2rad(0), SAA, VAA) == pytest.approx(-1.1068191757647372)
     assert calc_kgeo(SZA, deg2rad(50), SAA, VAA) == pytest.approx(0.4675029273554563)
+
+    # cross plane
+    SZA = deg2rad(45)
+    SAA = deg2rad(90)
+    VAA = deg2rad(0)
+    assert calc_kgeo(SZA, deg2rad(0), SAA, VAA) == pytest.approx(2 * -0.5686406727222244, abs=0.04)
+    assert calc_kgeo(SZA, deg2rad(50), SAA, VAA) == pytest.approx(2 * -0.6906509063504029, abs=0.04)
+
+def test_calc_kvol():
+    # principal plain
+    SZA = deg2rad(45)
+    SAA = deg2rad(180)
+    VAA = deg2rad(0)
+
+    # values estimated from Fig 2 in Lucht et al 2000
+    assert calc_kvol(SZA, deg2rad(0), SAA, VAA) == pytest.approx(-0.045, abs=0.001)
+    assert calc_kvol(SZA, deg2rad(50), SAA, VAA) == pytest.approx(0.374, abs=0.001)
+  
+    # cross plane
+    SZA = deg2rad(45)
+    SAA = deg2rad(90)
+    VAA = deg2rad(0)
+
+    # values estimated from Fig 2 in Lucht et al 2000
+    assert calc_kvol(SZA, deg2rad(0), SAA, VAA) == pytest.approx(-0.046, abs=0.001)
+    assert calc_kvol(SZA, deg2rad(70), SAA, VAA) == pytest.approx(0.200, abs=0.01)
