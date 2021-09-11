@@ -1,4 +1,4 @@
-from numpy import cos, sin, tan, pi, arccos, sqrt
+from numpy import cos, sin, tan, pi, arccos, sqrt, minimum
 
 
 def deg2rad(x):
@@ -50,7 +50,7 @@ def calc_kgeo(sza, vza, saa, vaa):
     cos_t = 2 * sqrt(D**2 + (tan(theta_prime) * tan(vartheta_prime) * sin(phi))**2) / \
         (sec(theta_prime) + sec(vartheta_prime))
     
-    t = arccos(min(1, cos_t))
+    t = arccos(minimum(1, cos_t))
 
     # eq. 40
     O = (1 / pi) * (t - sin(t) * cos(t)) * (sec(theta_prime) + sec(vartheta_prime))
