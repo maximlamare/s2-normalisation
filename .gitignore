@@ -73,7 +73,7 @@ dependencies.tar.gz
 .ipynb_checkpoints
 
 # cached data
-data/*
+data/*aux.xml
 
 # VSCode
 .vscode
