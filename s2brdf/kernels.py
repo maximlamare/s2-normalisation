@@ -14,7 +14,7 @@ def rad2deg(x):
 def relative_azimuth(saa, vaa):
     """Calculate the relative azimuth angle between a SAA and VAA.
        In Radians."""
-    return abs(vaa - pi - saa)
+    return abs(vaa - saa)
 
 
 def sec(x):
