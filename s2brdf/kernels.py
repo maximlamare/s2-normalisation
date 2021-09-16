@@ -1,14 +1,4 @@
-from numpy import cos, sin, tan, pi, arccos, sqrt, minimum
-
-
-def deg2rad(x):
-    """Convert degrees to radians"""
-    return x * pi / 180
-
-
-def rad2deg(x):
-    """Convert degrees to radians"""
-    return x / pi * 180
+from numpy import cos, sin, tan, pi, arccos, sqrt, minimum, deg2rad, rad2deg
 
 
 def relative_azimuth(saa, vaa):
