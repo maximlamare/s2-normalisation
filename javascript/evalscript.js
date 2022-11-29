@@ -12,7 +12,14 @@ function evaluatePixel(sample) {
     for(let i=0; i<sample.length; i++){
         if(sample[i].viewAzimuthMean>1){
             var available = sample[i]
-            break
+            var saa = deg2rad(available.sunAzimuthAngles);
+            var sza = deg2rad(available.sunZenithAngles);
+            var vaa = deg2rad(available.viewAzimuthMean);
+            var vza = deg2rad(available.viewZenithMean);
+            var nbar_blue = calc_nbar(available.B02, f_blue, sza, vza, saa, vaa);
+            var nbar_green = calc_nbar(available.B03, f_green, sza, vza, saa, vaa);
+            var nbar_red = calc_nbar(available.B04, f_red, sza, vza, saa, vaa)
+            return [2.5 * nbar_red, 2.5 * nbar_green, 2.5 * nbar_blue];
         }
     }
     var saa = deg2rad(available.sunAzimuthAngles);
@@ -44,7 +51,14 @@ function relative_azimuth(saa, vaa){
     // Calculate relative azimuth angle
     // Angles in RAD !
     // return vaa - saa;
-    return Math.abs(vaa - saa);
+    var phi = Math.abs(saa - vaa)
+    var diff = 0
+    if (phi > 180.0) {
+        diff = 360.0 - phi;
+    } else {
+       diff = phi;
+    }
+    return diff;
 }
 
 function calc_kgeo(sza, vza, saa, vaa){
