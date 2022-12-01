@@ -46,8 +46,8 @@ function relative_azimuth(saa, vaa){
     // return vaa - saa;
     var phi = Math.abs(saa - vaa)
     var diff = 0
-    if (phi > 180.0) {
-        diff = 360.0 - phi;
+    if (phi > Math.PI) {
+        diff = 2 * Math.PI - phi;
     } else {
        diff = phi;
     }
@@ -127,7 +127,6 @@ function calc_rho_modis(sza, vza, saa, vaa, f){
     for(var i=0; i<k_s.length; i++) {
         rho_modis += k_s[i]*f[i];
     }
-    //var rho_modis = math.dotMultiply(k_s, f);
 
     return rho_modis;
 }
