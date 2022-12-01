@@ -66,17 +66,22 @@ function calc_kgeo(sza, vza, saa, vaa){
     // vartheta_prime = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
     var vartheta_prime =  vza
 
+    //c 43 Lucht
     var cos_xi_prime = Math.cos(theta_prime) * Math.cos(vartheta_prime) + Math.sin(theta_prime) * Math.sin(vartheta_prime) * Math.cos(phi);
 
     // Calculate t, broken up for clarity
     // h / b = 2
+
+    //c 42 Lucht
     var D = Math.sqrt(Math.pow(Math.tan(theta_prime), 2) + Math.pow(Math.tan(vartheta_prime), 2) - 2 * Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.cos(phi));
     var tantansin = Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.sin(phi);
     var costtop = Math.sqrt(Math.pow(D, 2) + Math.pow(tantansin, 2))
+
+    //c 41 Lucht
     var cost = 2 * costtop / (sec(theta_prime) + sec(vartheta_prime))
     var t = Math.acos(Math.min(1, cost));
 
-    // Calculate O
+    // c 40 Lucht
     var O = (1 / Math.PI) * (t - Math.sin(t) * Math.cos(t)) * (sec(theta_prime) + sec(vartheta_prime));
 
     // Kgeo
