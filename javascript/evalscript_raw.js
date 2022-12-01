@@ -22,7 +22,7 @@ function evaluatePixel(sample) {
             var sza = deg2rad(available.sunZenithAngles);
             var vaa = deg2rad(available.viewAzimuthMean);
             var vza = deg2rad(available.viewZenithMean);
-            var bands = Object.keys(f_values)
+            var bands = Object.keys(f_values);
             return bands.map(band => calc_nbar(
                 available[band], 
                 f_values[band], 
@@ -41,7 +41,7 @@ var f_values = {
     "B08": [0.3093,0.0330,0.1535], 
     "B11": [0.3430,0.0453,0.1154], 
     "B12": [0.2658,0.0387,0.0639]
-}
+};
 
 function deg2rad(x){
     // Convert degrees to radians
@@ -61,7 +61,6 @@ function sec(x){
 function relative_azimuth(saa, vaa){
     // Calculate relative azimuth angle
     // Angles in RAD !
-    // return vaa - saa;
     var phi = Math.abs(saa - vaa)
     var diff = 0
     if (phi > Math.PI) {

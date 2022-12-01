@@ -19,8 +19,8 @@ function evaluatePixel(sample) {
             var sza = deg2rad(available.sunZenithAngles);
             var vaa = deg2rad(available.viewAzimuthMean);
             var vza = deg2rad(available.viewZenithMean);
-            var bands = Object.keys(f_values)
-            var lum = 2.5// brightness of the image
+            var bands = Object.keys(f_values);
+            var lum = 2.5 // brightness of the image
             return bands.map(band => lum*calc_nbar(
                 available[band], 
                 f_values[band], 
@@ -56,10 +56,11 @@ function sec(x){
 function relative_azimuth(saa, vaa){
     // Calculate relative azimuth angle
     // Angles in RAD !
+    // return vaa - saa;
     var phi = Math.abs(saa - vaa)
     var diff = 0
     if (phi > Math.PI) {
-        diff = 2*Math.PI - phi;
+        diff = 2 * Math.PI - phi;
     } else {
        diff = phi;
     }
@@ -78,17 +79,22 @@ function calc_kgeo(sza, vza, saa, vaa){
     // vartheta_prime = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
     var vartheta_prime =  vza
 
+    //c 43 Lucht
     var cos_xi_prime = Math.cos(theta_prime) * Math.cos(vartheta_prime) + Math.sin(theta_prime) * Math.sin(vartheta_prime) * Math.cos(phi);
 
     // Calculate t, broken up for clarity
     // h / b = 2
+
+    //c 42 Lucht
     var D = Math.sqrt(Math.pow(Math.tan(theta_prime), 2) + Math.pow(Math.tan(vartheta_prime), 2) - 2 * Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.cos(phi));
     var tantansin = Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.sin(phi);
     var costtop = Math.sqrt(Math.pow(D, 2) + Math.pow(tantansin, 2))
+
+    //c 41 Lucht
     var cost = 2 * costtop / (sec(theta_prime) + sec(vartheta_prime))
     var t = Math.acos(Math.min(1, cost));
 
-    // Calculate O
+    // c 40 Lucht
     var O = (1 / Math.PI) * (t - Math.sin(t) * Math.cos(t)) * (sec(theta_prime) + sec(vartheta_prime));
 
     // Kgeo
@@ -128,7 +134,6 @@ function calc_rho_modis(sza, vza, saa, vaa, f){
     for(var i=0; i<k_s.length; i++) {
         rho_modis += k_s[i]*f[i];
     }
-    //var rho_modis = math.dotMultiply(k_s, f);
 
     return rho_modis;
 }
