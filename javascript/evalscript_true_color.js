@@ -33,9 +33,9 @@ function evaluatePixel(sample) {
 // Kernel Parameters (Roy et al. 2017, Table 1)
 // [f_iso, f_geo, f_vol]
 var f_values = {
-    "B04": [0.0774,0.0079,0.0372], 
+    "B04": [0.1690,0.0227,0.0574], 
     "B03": [0.1306,0.0178,0.0580], 
-    "B02": [0.1690,0.0227,0.0574]
+    "B02": [0.0774,0.0079,0.0372]
 }
 
 function deg2rad(x){
