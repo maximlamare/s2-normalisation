@@ -2,28 +2,46 @@
 
 function setup() {
     return {
-        input: ["B02", "B03", "B04", "sunAzimuthAngles", "sunZenithAngles", "viewAzimuthMean", "viewZenithMean", "dataMask"],
-        output: { bands: 3 },
+        input: ["B02", "B03", "B04", "B08", "B11", "B12", "sunAzimuthAngles", "sunZenithAngles", "viewAzimuthMean", "viewZenithMean"],
+        output: { 
+            bands: 6,
+            sampleType: "FLOAT32"
+        },
         mosaicking: "TILE"
     };
 }
   
 function evaluatePixel(sample) {
     for(let i=0; i<sample.length; i++){
+        // Only calculate the BRDF for pixels where the 
+        // view geometry is available (on the edges of tiles
+        // reflectance is available but not view geometry)
         if(sample[i].viewAzimuthMean>1){
             var available = sample[i]
             var saa = deg2rad(available.sunAzimuthAngles);
             var sza = deg2rad(available.sunZenithAngles);
             var vaa = deg2rad(available.viewAzimuthMean);
             var vza = deg2rad(available.viewZenithMean);
-            var nbar_blue = calc_nbar(available.B02, f_blue, sza, vza, saa, vaa);
-            var nbar_green = calc_nbar(available.B03, f_green, sza, vza, saa, vaa);
-            var nbar_red = calc_nbar(available.B04, f_red, sza, vza, saa, vaa)
-            return [2.5 * nbar_red, 2.5 * nbar_green, 2.5 * nbar_blue];
+            var bands = Object.keys(f_values);
+            return bands.map(band => calc_nbar(
+                available[band], 
+                f_values[band], 
+                sza, vza, saa, vaa));
         }
     }
     return [0,0,0]
 }
+
+// Kernel Parameters (Roy et al. 2017, Table 1)
+// [f_iso, f_geo, f_vol]
+var f_values = {
+    "B02": [0.0774,0.0079,0.0372], 
+    "B03": [0.1306,0.0178,0.0580], 
+    "B04": [0.1690,0.0227,0.0574], 
+    "B08": [0.3093,0.0330,0.1535], 
+    "B11": [0.3430,0.0453,0.1154], 
+    "B12": [0.2658,0.0387,0.0639]
+};
 
 function deg2rad(x){
     // Convert degrees to radians
@@ -43,7 +61,6 @@ function sec(x){
 function relative_azimuth(saa, vaa){
     // Calculate relative azimuth angle
     // Angles in RAD !
-    // return vaa - saa;
     var phi = Math.abs(saa - vaa)
     var diff = 0
     if (phi > Math.PI) {
@@ -113,12 +130,6 @@ function calc_kvol(sza, vza, saa, vaa){
 
     return kvol;
 }
-
-// Kernel Parameters (Roy et al. 2017, Table 1)
-// [f_iso, f_geo, f_vol]
-var f_blue = [0.0774,0.0079,0.0372];
-var f_green = [0.1306,0.0178,0.0580];
-var f_red = [0.1690,0.0227,0.0574];
 
 function calc_rho_modis(sza, vza, saa, vaa, f){
     // Eq. 6 in Roy et al 2017, Eq. 37 in Lucht et al 2000
