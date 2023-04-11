@@ -81,11 +81,6 @@ function deg2rad(x) {
     return x * Math.PI / 180;
 }
 
-function rad2deg(x) {
-    // Convert degrees to radians
-    return x / Math.PI * 180;
-}
-
 function sec(x) {
     // Calculate the secant of a value
     return 1 / Math.cos(x);
@@ -143,9 +138,9 @@ function calc_kvol(c) {
     return kvol;
 }
 
-function calc_rho_modis(a, b, f) {
+function calc_rho_modis(kgeo, kvol, f) {
     // Eq. 6 in Roy et al 2017, Eq. 37 in Lucht et al 2000
-    return f[0] + f[1] * a + f[2] * b;
+    return f[0] + f[1] * kgeo + f[2] * kvol;
 }
 
 function calc_c_lambda(kernels, f) {
