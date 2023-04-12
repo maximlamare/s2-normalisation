@@ -22,11 +22,21 @@ function evaluatePixel(sample) {
             var sza = deg2rad(available.sunZenithAngles);
             var vaa = deg2rad(available.viewAzimuthMean);
             var vza = deg2rad(available.viewZenithMean);
+
+            let constant = build_constants(sza, vza, saa, vaa);
+            let c_vza_zero = build_constants(sza, 0, saa, vaa);
+            let kernels = {
+                kgeo: calc_kgeo(constant),
+                kvol: calc_kvol(constant),
+                kgeo_vza_zero: calc_kgeo(c_vza_zero),
+                kvol_vza_zero: calc_kvol(c_vza_zero)
+            }
+
             var bands = Object.keys(f_values);
             return bands.map(band => calc_nbar(
                 available[band],
                 f_values[band],
-                sza, vza, saa, vaa));
+                kernels));
         }
     }
     return [0, 0, 0]
@@ -43,14 +53,37 @@ var f_values = {
     "B12": [0.2658, 0.0387, 0.0639]
 };
 
+function build_constants(sza, vza, saa, vaa) {
+    // calculates constants from viewing geometry that are often needed in the
+    // calculations and are expensive to calculate (i.e. tan)
+    const phi = relative_azimuth(saa, vaa);
+    let c = {
+        cos: {
+            sza: Math.cos(sza),
+            vza: Math.cos(vza),
+            phi: Math.cos(phi),
+        },
+        sin: {
+            sza: Math.sin(sza),
+            vza: Math.sin(vza),
+            phi: Math.sin(phi),
+        },
+        sec: {
+            sza: sec(sza),
+            vza: sec(vza),
+        },
+        tan: {}
+    };
+    c.tan.sza = c.sin.sza / c.cos.sza;
+    c.tan.vza = c.sin.vza / c.cos.vza;
+    //c 43 Lucht
+    c.cos_xi = c.cos.sza * c.cos.vza + c.sin.sza * c.sin.vza * c.cos.phi;
+    return c
+}
+
 function deg2rad(x) {
     // Convert degrees to radians
     return x * Math.PI / 180;
-}
-
-function rad2deg(x) {
-    // Convert degrees to radians
-    return x / Math.PI * 180;
 }
 
 function sec(x) {
@@ -61,8 +94,8 @@ function sec(x) {
 function relative_azimuth(saa, vaa) {
     // Calculate relative azimuth angle
     // Angles in RAD !
-    var phi = Math.abs(saa - vaa)
-    var diff = 0
+    let phi = Math.abs(saa - vaa)
+    let diff = 0
     if (phi > Math.PI) {
         diff = 2 * Math.PI - phi;
     } else {
@@ -71,86 +104,59 @@ function relative_azimuth(saa, vaa) {
     return diff;
 }
 
-function calc_kgeo(sza, vza, saa, vaa) {
+function calc_kgeo(c) {
     // Calculate the LiSparse kernel from Lucht et al. 2000
     // Angles in RAD !
 
-    // Relative azimuth
-    var phi = relative_azimuth(vaa, saa)
-
-    // theta_prime = Math.atan(b / r * Math.tan(sza)) simplifies because b/r = 1
-    var theta_prime = sza
-    // vartheta_prime = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
-    var vartheta_prime = vza
-
-    //c 43 Lucht
-    var cos_xi_prime = Math.cos(theta_prime) * Math.cos(vartheta_prime) + Math.sin(theta_prime) * Math.sin(vartheta_prime) * Math.cos(phi);
-
-    // Calculate t, broken up for clarity
-    // h / b = 2
+    // sza = theta_prime = Math.atan(b / r * Math.tan(sza)) simplifies because b/r = 1
+    // vza = lettheta_prime = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
 
     //c 42 Lucht
-    var D = Math.sqrt(Math.pow(Math.tan(theta_prime), 2) + Math.pow(Math.tan(vartheta_prime), 2) - 2 * Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.cos(phi));
-    var tantansin = Math.tan(theta_prime) * Math.tan(vartheta_prime) * Math.sin(phi);
-    var costtop = Math.sqrt(Math.pow(D, 2) + Math.pow(tantansin, 2))
+    let Dsq = Math.pow(c.tan.sza, 2) + Math.pow(c.tan.vza, 2) - 2 * c.tan.sza * c.tan.vza * c.cos.phi;
+    let tantansin = c.tan.sza * c.tan.vza * c.sin.phi;
+    let costtop = Math.sqrt(Dsq + Math.pow(tantansin, 2))
 
     //c 41 Lucht
-    var cost = 2 * costtop / (sec(theta_prime) + sec(vartheta_prime))
-    var t = Math.acos(Math.min(1, cost));
+    let cost = 2 * costtop / (c.sec.sza + c.sec.vza)
+    let t = Math.acos(Math.min(1, cost));
 
     // c 40 Lucht
-    var O = (1 / Math.PI) * (t - Math.sin(t) * Math.cos(t)) * (sec(theta_prime) + sec(vartheta_prime));
+    let big_o = (1 / Math.PI) * (t - Math.sin(t) * Math.cos(t)) * (c.sec.sza + c.sec.vza);
 
     // Kgeo
-    kgeo = O - sec(theta_prime) - sec(vartheta_prime) + 1 / 2 * (1 + cos_xi_prime) * sec(theta_prime) * sec(vartheta_prime);
+    let kgeo = big_o - c.sec.sza - c.sec.vza + 1 / 2 * (1 + c.cos_xi) * c.sec.sza * c.sec.vza;
 
     return kgeo;
 }
 
-function calc_cos_xi(theta, vartheta, phi) {
-    return Math.cos(theta) * Math.cos(vartheta) + Math.sin(theta) * Math.sin(vartheta) * Math.cos(phi);
-}
-
-function calc_kvol(sza, vza, saa, vaa) {
+function calc_kvol(c) {
     //Calculate the RossThick kernel (k_vol) from Lucht et al. 2000 equation 38
     // Angles in RAD !
-    var phi = relative_azimuth(saa, vaa);
 
     // eq 44
-    // theta_prime = Math.atan(b / r * Math.tan(sza)) simplifies because b/r = 1
-    var theta_prime = sza;
+    // sza = theta_prime = Math.atan(b / r * Math.tan(sza)) simplifies because b/r = 1
+    // vza = lettheta = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
+    let xi = Math.acos(c.cos_xi);
 
-    // vartheta_prime = Math.atan(b / r * Math.tan(vza)) simplifies because b/r = 1
-    var vartheta = vza;
-
-    var cos_xi = calc_cos_xi(theta_prime, vartheta, phi);
-    var xi = Math.acos(cos_xi);
-
-    var kvol = ((Math.PI / 2 - xi) * cos_xi + Math.sin(xi)) / (Math.cos(theta_prime) + Math.cos(vartheta)) - Math.PI / 4;
+    let kvol = ((Math.PI / 2 - xi) * c.cos_xi + Math.sin(xi)) / (c.cos.sza + c.cos.vza) - Math.PI / 4;
 
     return kvol;
 }
 
-function calc_rho_modis(sza, vza, saa, vaa, f) {
+function calc_rho_modis(kgeo, kvol, f) {
     // Eq. 6 in Roy et al 2017, Eq. 37 in Lucht et al 2000
-    var k_s = [1, calc_kgeo(sza, vza, saa, vaa), calc_kvol(sza, vza, saa, vaa)]
-    var rho_modis = 0;
-    for (var i = 0; i < k_s.length; i++) {
-        rho_modis += k_s[i] * f[i];
-    }
-
-    return rho_modis;
+    return f[0] + f[1] * kgeo + f[2] * kvol;
 }
 
-function calc_c_lambda(sza, vza, saa, vaa, f) {
+function calc_c_lambda(kernels, f) {
     // Part 2 of Eq. 5 in Roy et al 2017
-    return calc_rho_modis(sza, 0, saa, vaa, f) / calc_rho_modis(sza, vza, saa, vaa, f);
+    return calc_rho_modis(kernels.kgeo_vza_zero, kernels.kvol_vza_zero, f) / calc_rho_modis(kernels.kgeo, kernels.kvol, f);
 }
 
-function calc_nbar(r_s2, f, sza, vza, saa, vaa) {
+function calc_nbar(r_s2, f, kernels) {
     //Part 1 of Eq. 5 in Roy et al 2017
     // r_s2: reflectance in band 
     // f: f values for band
-    var c_lambda = calc_c_lambda(sza, vza, saa, vaa, f);
+    let c_lambda = calc_c_lambda(kernels, f);
     return c_lambda * r_s2;
 }
